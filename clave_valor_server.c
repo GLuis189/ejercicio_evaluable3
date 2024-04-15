@@ -5,15 +5,113 @@
  */
 
 #include "clave_valor.h"
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <strings.h>
+#include <sys/types.h>
+
+#define MAX_TUPLAS 100
+#define MAX	256
+
+typedef struct{
+    int clave;
+    char valor1[MAX];
+    int N;
+    double *vector;
+}Tupla;
+
+pthread_mutex_t mutex_tuplas = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_keys = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_archivo = PTHREAD_MUTEX_INITIALIZER;
+
+Tupla tuplas[MAX_TUPLAS];
+int keys[MAX_TUPLAS]; // Array para almacenar las claves
+int numTuplas = 0;    // Variable global para almacenar el número actual de tuplas
+
+// Definición de la variable global para el nombre del archivo
+char filename[FILENAME_MAX];
+
+// Función para escribir las tuplas en un archivo de texto
+void escribirTuplas()
+{
+    pthread_mutex_lock(&mutex_archivo);
+    FILE *fp = fopen(filename, "w");
+    if (fp == NULL)
+    {
+        printf("Error al abrir el archivo para escribir.\n");
+        pthread_mutex_unlock(&mutex_archivo);
+        return;
+    }
+
+    for (int i = 0; i < numTuplas; i++)
+    {
+        fprintf(fp, "%d,%s", tuplas[i].clave, tuplas[i].valor1);
+        for (int j = 0; j < tuplas[i].N; j++)
+        {
+            fprintf(fp, ",%.2f", tuplas[i].vector[j]);
+        }
+        fprintf(fp, "\n");
+    }
+
+    fclose(fp);
+    pthread_mutex_unlock(&mutex_archivo);
+}
+
+// Función para leer las tuplas desde un archivo de texto
+void leerTuplas()
+{
+    pthread_mutex_lock(&mutex_archivo);
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL)
+    {
+        printf("Error al abrir el archivo para leer.\n");
+        pthread_mutex_unlock(&mutex_archivo);
+        return;
+    }
+
+    while (!feof(fp) && numTuplas < MAX_TUPLAS)
+    {
+        Tupla t;
+        int result = fscanf(fp, "%d,%[^,],%d", &t.clave, t.valor1, &t.N);
+        if (result == EOF)
+        {
+            break;
+        }
+        t.vector = (double *)malloc(t.N * sizeof(double));
+        for (int i = 0; i < t.N; i++)
+        {
+            fscanf(fp, ",%lf", &t.vector[i]);
+        }
+        pthread_mutex_lock(&mutex_tuplas);
+        pthread_mutex_lock(&mutex_keys);
+        tuplas[numTuplas] = t;
+        keys[numTuplas] = t.clave;
+        numTuplas++;
+        pthread_mutex_unlock(&mutex_keys);
+        pthread_mutex_unlock(&mutex_tuplas);
+    }
+
+    fclose(fp);
+    pthread_mutex_unlock(&mutex_archivo);
+}
 
 int *
 init_1_svc(struct svc_req *rqstp)
 {
 	static int  result;
 
-	/*
-	 * insert server code here
-	 */
+	printf("Inicializado\n");
+
+    strcpy(filename, "datos");
+    remove(filename);
+    escribirTuplas();
+    leerTuplas();
+
+    result = 0;
 
 	return &result;
 }
