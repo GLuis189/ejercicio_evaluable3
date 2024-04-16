@@ -24,17 +24,13 @@ init_1(CLIENT *clnt)
 }
 
 int *
-set_value_1(int arg1, char *arg2, int arg3, double_array arg4,  CLIENT *clnt)
+set_value_1(value_args arg1,  CLIENT *clnt)
 {
-	set_value_1_argument arg;
 	static int clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	arg.arg1 = arg1;
-	arg.arg2 = arg2;
-	arg.arg3 = arg3;
-	arg.arg4 = arg4;
-	if (clnt_call (clnt, SET_VALUE, (xdrproc_t) xdr_set_value_1_argument, (caddr_t) &arg,
+	if (clnt_call (clnt, SET_VALUE,
+		(xdrproc_t) xdr_value_args, (caddr_t) &arg1,
 		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -43,13 +39,13 @@ set_value_1(int arg1, char *arg2, int arg3, double_array arg4,  CLIENT *clnt)
 }
 
 get_value_result *
-get_value_1(int arg1,  CLIENT *clnt)
+get_value_1(int key,  CLIENT *clnt)
 {
 	static get_value_result clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, GET_VALUE,
-		(xdrproc_t) xdr_int, (caddr_t) &arg1,
+		(xdrproc_t) xdr_int, (caddr_t) &key,
 		(xdrproc_t) xdr_get_value_result, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -58,17 +54,13 @@ get_value_1(int arg1,  CLIENT *clnt)
 }
 
 int *
-modify_value_1(int arg1, char *arg2, int arg3, double_array arg4,  CLIENT *clnt)
+modify_value_1(value_args arg1,  CLIENT *clnt)
 {
-	modify_value_1_argument arg;
 	static int clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	arg.arg1 = arg1;
-	arg.arg2 = arg2;
-	arg.arg3 = arg3;
-	arg.arg4 = arg4;
-	if (clnt_call (clnt, MODIFY_VALUE, (xdrproc_t) xdr_modify_value_1_argument, (caddr_t) &arg,
+	if (clnt_call (clnt, MODIFY_VALUE,
+		(xdrproc_t) xdr_value_args, (caddr_t) &arg1,
 		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -77,13 +69,13 @@ modify_value_1(int arg1, char *arg2, int arg3, double_array arg4,  CLIENT *clnt)
 }
 
 int *
-delete_key_1(int arg1,  CLIENT *clnt)
+delete_key_1(int key,  CLIENT *clnt)
 {
 	static int clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, DELETE_KEY,
-		(xdrproc_t) xdr_int, (caddr_t) &arg1,
+		(xdrproc_t) xdr_int, (caddr_t) &key,
 		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -92,13 +84,13 @@ delete_key_1(int arg1,  CLIENT *clnt)
 }
 
 int *
-exist_1(int arg1,  CLIENT *clnt)
+exist_1(int key,  CLIENT *clnt)
 {
 	static int clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, EXIST,
-		(xdrproc_t) xdr_int, (caddr_t) &arg1,
+		(xdrproc_t) xdr_int, (caddr_t) &key,
 		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);

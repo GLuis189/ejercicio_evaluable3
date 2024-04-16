@@ -17,11 +17,11 @@ xdr_double_array (XDR *xdrs, double_array *objp)
 }
 
 bool_t
-xdr_get_value_result (XDR *xdrs, get_value_result *objp)
+xdr_value_args (XDR *xdrs, value_args *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_int (xdrs, &objp->status))
+	 if (!xdr_int (xdrs, &objp->key))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->value1, ~0))
 		 return FALSE;
@@ -33,29 +33,17 @@ xdr_get_value_result (XDR *xdrs, get_value_result *objp)
 }
 
 bool_t
-xdr_set_value_1_argument (XDR *xdrs, set_value_1_argument *objp)
+xdr_get_value_result (XDR *xdrs, get_value_result *objp)
 {
-	 if (!xdr_int (xdrs, &objp->arg1))
-		 return FALSE;
-	 if (!xdr_string (xdrs, &objp->arg2, ~0))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->arg3))
-		 return FALSE;
-	 if (!xdr_double_array (xdrs, &objp->arg4))
-		 return FALSE;
-	return TRUE;
-}
+	register int32_t *buf;
 
-bool_t
-xdr_modify_value_1_argument (XDR *xdrs, modify_value_1_argument *objp)
-{
-	 if (!xdr_int (xdrs, &objp->arg1))
+	 if (!xdr_int (xdrs, &objp->status))
 		 return FALSE;
-	 if (!xdr_string (xdrs, &objp->arg2, ~0))
+	 if (!xdr_string (xdrs, &objp->value1, 256))
 		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->arg3))
+	 if (!xdr_int (xdrs, &objp->N_value2))
 		 return FALSE;
-	 if (!xdr_double_array (xdrs, &objp->arg4))
+	 if (!xdr_double_array (xdrs, &objp->V_value2))
 		 return FALSE;
 	return TRUE;
 }

@@ -23,9 +23,9 @@ _init_1 (void  *argp, struct svc_req *rqstp)
 }
 
 static int *
-_set_value_1 (set_value_1_argument *argp, struct svc_req *rqstp)
+_set_value_1 (value_args  *argp, struct svc_req *rqstp)
 {
-	return (set_value_1_svc(argp->arg1, argp->arg2, argp->arg3, argp->arg4, rqstp));
+	return (set_value_1_svc(*argp, rqstp));
 }
 
 static get_value_result *
@@ -35,9 +35,9 @@ _get_value_1 (int  *argp, struct svc_req *rqstp)
 }
 
 static int *
-_modify_value_1 (modify_value_1_argument *argp, struct svc_req *rqstp)
+_modify_value_1 (value_args  *argp, struct svc_req *rqstp)
 {
-	return (modify_value_1_svc(argp->arg1, argp->arg2, argp->arg3, argp->arg4, rqstp));
+	return (modify_value_1_svc(*argp, rqstp));
 }
 
 static int *
@@ -56,9 +56,9 @@ static void
 clave_valor_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
 	union {
-		set_value_1_argument set_value_1_arg;
+		value_args set_value_1_arg;
 		int get_value_1_arg;
-		modify_value_1_argument modify_value_1_arg;
+		value_args modify_value_1_arg;
 		int delete_key_1_arg;
 		int exist_1_arg;
 	} argument;
@@ -78,7 +78,7 @@ clave_valor_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		break;
 
 	case SET_VALUE:
-		_xdr_argument = (xdrproc_t) xdr_set_value_1_argument;
+		_xdr_argument = (xdrproc_t) xdr_value_args;
 		_xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) _set_value_1;
 		break;
@@ -90,7 +90,7 @@ clave_valor_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		break;
 
 	case MODIFY_VALUE:
-		_xdr_argument = (xdrproc_t) xdr_modify_value_1_argument;
+		_xdr_argument = (xdrproc_t) xdr_value_args;
 		_xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) _modify_value_1;
 		break;
