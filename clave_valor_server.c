@@ -261,14 +261,14 @@ delete_key_1_svc(int key,  struct svc_req *rqstp)
             pthread_mutex_unlock(&mutex_keys);
             pthread_mutex_unlock(&mutex_tuplas);
             escribirTuplas();
-            return 0;
+            result = 0;
+            return &result;
         }
     }
     pthread_mutex_unlock(&mutex_keys);
     pthread_mutex_unlock(&mutex_tuplas);
-    return -1;
-
-	return &result;
+    result = -1;
+    return &result;
 }
 
 int *
@@ -283,11 +283,12 @@ exist_1_svc(int key,  struct svc_req *rqstp)
         if (keys[i] == key)
         {
             pthread_mutex_unlock(&mutex_keys);
-            return 0;
+            result = 1;
+            return &result;
         }
     }
     pthread_mutex_unlock(&mutex_keys);
-    return -1;
-
-	return &result;
+    result = 0;
+    return &result;
 }
+
