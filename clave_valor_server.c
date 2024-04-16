@@ -169,20 +169,13 @@ get_value_1_svc(int key, struct svc_req *rqstp)
         if (keys[i] == key)
         {
             // llega
-            result.value1.value1_val = (char *)malloc((strlen(tuplas[i].valor1) + 1) * sizeof(char));
-			if (result.value1.value1_val == NULL) {
-				fprintf(stderr, "Error al asignar memoria\n");
-				exit(1);
-			}
-			strcpy(result.value1.value1_val, tuplas[i].valor1);
-			result.value1.value1_len = strlen(result.value1.value1_val);
-            printf("a\n");
+            result.status = 0;
+            result.value1 = (char *)malloc(MAX_C * sizeof(char));
+            strcpy(result.value1, tuplas[i].valor1);
             result.N_value2 = tuplas[i].N;
-            printf("b\n");
 
             result.V_value2.double_array_len = tuplas[i].N;
             result.V_value2.double_array_val = (double *)malloc(result.N_value2 * sizeof(double));
-            printf("c\n");
 
             for (int j = 0; j < result.N_value2; j++)
             {

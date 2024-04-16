@@ -83,7 +83,7 @@ clave_valor_1(char *host)
 	if (result_4 == (int *) NULL) {
 		clnt_perror (clnt, "call failed");
 	}
-	delete_key_1_key = 1;
+	delete_key_1_key = 2;
 	result_5 = delete_key_1(delete_key_1_key, clnt);
 	if (result_5 == (int *) NULL) {
 		clnt_perror (clnt, "call failed");
