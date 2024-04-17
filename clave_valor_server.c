@@ -156,45 +156,54 @@ set_value_1_svc(value_args arg1, int *result,  struct svc_req *rqstp)
 }
 
 
-bool_t
-get_value_1_svc(int key, get_value_result *result,  struct svc_req *rqstp)
-{
-	bool_t retval = TRUE;
+bool_t get_value_1_svc(int key, get_value_result *result,  struct svc_req *rqstp) {
+    bool_t retval = TRUE;
 
-	printf("Obteniendo valor\n");
+    printf("Obteniendo valor\n");
 
-	pthread_mutex_lock(&mutex_tuplas);
-	pthread_mutex_lock(&mutex_keys);
+    pthread_mutex_lock(&mutex_tuplas);
+    pthread_mutex_lock(&mutex_keys);
 
-	for (int i = 0; i < numTuplas; i++)
-	{
-		if (keys[i] == key)
-		{
-			result->status = 0;
-			result->value1 = (char *)malloc(MAX_C * sizeof(char)+1);
-			strcpy(result->value1, tuplas[i].valor1);
-			result->N_value2 = tuplas[i].N;
+    for (int i = 0; i < numTuplas; i++) {
+        if (keys[i] == key) {
+            result->status = 0;
+            result->value1 = (char *)malloc(MAX_C * sizeof(char));
+            result->N_value2 = tuplas[i].N;
 
-			result->V_value2.double_array_len = tuplas[i].N;
-			result->V_value2.double_array_val = (double *)malloc(result->N_value2 * sizeof(double));
+            // Comprueba si la asignación de memoria fue exitosa
+            if (result->value1 == NULL) {
+                printf("Error: no se pudo asignar memoria para value1\n");
+                return FALSE;
+            }
 
+            strcpy(result->value1, tuplas[i].valor1);
 
-			for (int j = 0; j < result->N_value2; j++)
-			{
-				result->V_value2.double_array_val[j] = tuplas[i].vector[j];
-			}
-			pthread_mutex_unlock(&mutex_keys);
-			pthread_mutex_unlock(&mutex_tuplas);
-			return retval;
-		}
-	}
+            result->V_value2.double_array_len = tuplas[i].N;
+            result->V_value2.double_array_val = (double *)malloc(result->N_value2 * sizeof(double));
 
-	pthread_mutex_unlock(&mutex_keys);
-	pthread_mutex_unlock(&mutex_tuplas);
+            // Comprueba si la asignación de memoria fue exitosa
+            if (result->V_value2.double_array_val == NULL) {
+                printf("Error: no se pudo asignar memoria para V_value2.double_array_val\n");
+                return FALSE;
+            }
 
-	result->status = -1;
-	return retval;
+            for (int j = 0; j < result->N_value2; j++) {
+                result->V_value2.double_array_val[j] = tuplas[i].vector[j];
+            }
+
+            pthread_mutex_unlock(&mutex_keys);
+            pthread_mutex_unlock(&mutex_tuplas);
+            return retval;
+        }
+    }
+
+    pthread_mutex_unlock(&mutex_keys);
+    pthread_mutex_unlock(&mutex_tuplas);
+
+    result->status = -1;
+    return retval;
 }
+
 
 
 bool_t

@@ -65,20 +65,39 @@ void clave_valor_1(char *host) {
 
 	printf("SET\n");
 
-    // get_value_1_key = 1;
-    // retval_3 = get_value_1(get_value_1_key, &result_3, clnt);
-    // if (retval_3 != RPC_SUCCESS) {
-    //     clnt_perror (clnt, "call failed");
-    // }
+    get_value_1_key = 1;
 
-    // printf(result_3.status == 0 ? "Valor: %s\n" : "No existe la clave\n", result_3.value1);
-    // printf("Vector: ");
-    // for (int i = 0; i < result_3.N_value2; i++) {
-    //     printf("%f ", result_3.V_value2.double_array_val[i]);
-    // }
-    // printf("\n");
+	// Inicializa result_3 antes de usarlo
+	memset(&result_3, 0, sizeof(result_3));
 
-	// printf("GET\n");
+	retval_3 = get_value_1(get_value_1_key, &result_3, clnt);
+	if (retval_3 != RPC_SUCCESS) {
+		clnt_perror (clnt, "call failed");
+	}
+
+	if (result_3.status == 0) {
+    // Comprueba si value1 y V_value2.double_array_val son NULL antes de usarlos
+    if (result_3.value1 == NULL || result_3.V_value2.double_array_val == NULL) {
+        printf("Error: memoria no asignada\n");
+        return;
+    }
+
+    printf("Valor: %s\n", result_3.value1);
+    printf("Vector: ");
+    for (int i = 0; i < result_3.N_value2; i++) {
+        printf("%f ", result_3.V_value2.double_array_val[i]);
+    }
+    printf("\n");
+
+    // Liberar la memoria después de usar los datos
+    free(result_3.value1);
+    free(result_3.V_value2.double_array_val);
+}
+
+
+
+printf("GET\n");
+
 
     modify_value_1_arg1.key = 1;
     modify_value_1_arg1.value1 = "Adios\0";
