@@ -54,7 +54,7 @@ int set_value(int clave, char *valor1, int N_value2, double *V_value2){
     return *result_2;
 }
 
-get_value_result * get_value(int clave){
+int get_value(int key, char *value1, int *N_value2, double *V_value2){
     CLIENT *clnt;
     get_value_result  *result_3;
     int get_value_1_arg1;
@@ -67,15 +67,21 @@ get_value_result * get_value(int clave){
         exit (1);
     }
 
-    get_value_1_arg1 = clave;
+    get_value_1_arg1 = key;
 
     result_3 = get_value_1(get_value_1_arg1, clnt);
-    if (result_3 == (get_value_result *) NULL) {
+    if (result_3 == (value_args *) NULL) {
         clnt_perror (clnt, "call failed");
     }
 
+    strcpy(value1, result_3->value1);
+    *N_value2 = result_3->N_value2;
+    for (int i = 0; i < *N_value2; i++){
+        V_value2[i] = result_3->V_value2.double_array_val[i];
+    }
+
     clnt_destroy (clnt);
-    return result_3;
+    return result_3->status;
 }
 
 int modify_value(int clave, char *valor1, int N_value2, double *V_value2){

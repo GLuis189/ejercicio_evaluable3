@@ -99,10 +99,10 @@ void leerTuplas()
     pthread_mutex_unlock(&mutex_archivo);
 }
 
-int *
-init_1_svc(struct svc_req *rqstp)
+bool_t
+init_1_svc(int *result, struct svc_req *rqstp)
 {
-	static int  result;
+	bool_t retval = TRUE;
 
 	printf("Inicializado\n");
 
@@ -111,184 +111,198 @@ init_1_svc(struct svc_req *rqstp)
     escribirTuplas();
     leerTuplas();
 
-    result = 0;
+    *result = 0;
 
-	return &result;
+	return retval;
 }
 
-int * 
-set_value_1_svc(value_args arg1,  struct svc_req *rqstp) {
-    static int result;
 
-    printf("Seteado valor\n");
-    Tupla t;
-    t.clave = arg1.key;
-    strcpy(t.valor1, arg1.value1);
-    t.N = arg1.N_value2;
-    t.vector = (double *)malloc(arg1.N_value2 * sizeof(double));
-    for (int i = 0; i < arg1.N_value2; i++) {
-        t.vector[i] = arg1.V_value2.double_array_val[i]; // Accede a los elementos del array con .V_value2_val
-    }
-
-    pthread_mutex_lock(&mutex_tuplas);
-    pthread_mutex_lock(&mutex_keys);
-    for (int i = 0; i < numTuplas; i++) {
-        if (keys[i] == arg1.key) {
-            pthread_mutex_unlock(&mutex_keys);
-            pthread_mutex_unlock(&mutex_tuplas);
-            result = -1;
-            return &result;
-        }
-    }
-
-    tuplas[numTuplas] = t;
-    keys[numTuplas] = arg1.key;
-    numTuplas++;
-    pthread_mutex_unlock(&mutex_keys);
-    pthread_mutex_unlock(&mutex_tuplas);
-
-    escribirTuplas();
-
-    result = 0;
-    return &result;
-}
-
-get_value_result *
-get_value_1_svc(int key, struct svc_req *rqstp)
+bool_t
+set_value_1_svc(value_args arg1, int *result,  struct svc_req *rqstp)
 {
-    static get_value_result result;
+	bool_t retval = TRUE;
 
-    printf("Obteniendo valor\n");
+	printf("Seteado valor\n");
+	Tupla t;
+	t.clave = arg1.key;
+	strcpy(t.valor1, arg1.value1);
+	t.N = arg1.N_value2;
+	t.vector = (double *)malloc(arg1.N_value2 * sizeof(double));
+	for (int i = 0; i < arg1.N_value2; i++) {
+		t.vector[i] = arg1.V_value2.double_array_val[i]; // Accede a los elementos del array con .V_value2_val
+	}
 
-    pthread_mutex_lock(&mutex_tuplas);
-    pthread_mutex_lock(&mutex_keys);
+	pthread_mutex_lock(&mutex_tuplas);
+	pthread_mutex_lock(&mutex_keys);
+	for (int i = 0; i < numTuplas; i++) {
+		if (keys[i] == arg1.key) {
+			pthread_mutex_unlock(&mutex_keys);
+			pthread_mutex_unlock(&mutex_tuplas);
+			*result = -1;
+			return retval;
+		}
+	}
 
-    // llega
-    for (int i = 0; i < numTuplas; i++)
-    {
-        if (keys[i] == key)
-        {
-            // llega
-            result.status = 0;
-            result.value1 = (char *)malloc(MAX_C * sizeof(char));
-            strcpy(result.value1, tuplas[i].valor1);
-            result.N_value2 = tuplas[i].N;
+	tuplas[numTuplas] = t;
+	keys[numTuplas] = arg1.key;
+	numTuplas++;
+	pthread_mutex_unlock(&mutex_keys);
+	pthread_mutex_unlock(&mutex_tuplas);
 
-            result.V_value2.double_array_len = tuplas[i].N;
-            result.V_value2.double_array_val = (double *)malloc(result.N_value2 * sizeof(double));
+	escribirTuplas();
 
-            for (int j = 0; j < result.N_value2; j++)
-            {
-                result.V_value2.double_array_val[j] = tuplas[i].vector[j];
-            }
-
-            pthread_mutex_unlock(&mutex_keys);
-            pthread_mutex_unlock(&mutex_tuplas);
-            return &result;
-        }
-    }
-
-    pthread_mutex_unlock(&mutex_keys);
-    pthread_mutex_unlock(&mutex_tuplas);
-
-    result.status = -1;
-    return &result;
+	*result = 0;
+	return retval;
 }
 
 
-int *
-modify_value_1_svc(value_args arg1, struct svc_req *rqstp)
+bool_t
+get_value_1_svc(int key, get_value_result *result,  struct svc_req *rqstp)
 {
-    static int result;
+	bool_t retval = TRUE;
 
-    printf("Modificando valor\n");
+	printf("Obteniendo valor\n");
 
-    pthread_mutex_lock(&mutex_tuplas);
-    pthread_mutex_lock(&mutex_keys);
+	pthread_mutex_lock(&mutex_tuplas);
+	pthread_mutex_lock(&mutex_keys);
 
-    for (int i = 0; i < numTuplas; i++)
-    {
-        if (keys[i] == arg1.key)
-        {
-            strcpy(tuplas[i].valor1, arg1.value1);
-            tuplas[i].N = arg1.N_value2;
+	for (int i = 0; i < numTuplas; i++)
+	{
+		if (keys[i] == key)
+		{
+			result->status = 0;
+			result->value1 = (char *)malloc(MAX_C * sizeof(char)+1);
+			strcpy(result->value1, tuplas[i].valor1);
+			result->N_value2 = tuplas[i].N;
 
-            if (tuplas[i].vector != NULL)
-            {
-                free(tuplas[i].vector);  // Libera la memoria previamente asignada si existe
-            }
-            
-            tuplas[i].vector = (double *)malloc(arg1.N_value2 * sizeof(double));
-            
-            for (int j = 0; j < arg1.N_value2; j++)
-            {
-                tuplas[i].vector[j] = arg1.V_value2.double_array_val[j];
-            }
+			result->V_value2.double_array_len = tuplas[i].N;
+			result->V_value2.double_array_val = (double *)malloc(result->N_value2 * sizeof(double));
 
-            pthread_mutex_unlock(&mutex_keys);
-            pthread_mutex_unlock(&mutex_tuplas);
-            escribirTuplas();
-            result = 0;
-            return &result;
-        }
-    }
 
-    pthread_mutex_unlock(&mutex_keys);
-    pthread_mutex_unlock(&mutex_tuplas);
-    result = -1;
-    return &result;
+			for (int j = 0; j < result->N_value2; j++)
+			{
+				result->V_value2.double_array_val[j] = tuplas[i].vector[j];
+			}
+			pthread_mutex_unlock(&mutex_keys);
+			pthread_mutex_unlock(&mutex_tuplas);
+			return retval;
+		}
+	}
+
+	pthread_mutex_unlock(&mutex_keys);
+	pthread_mutex_unlock(&mutex_tuplas);
+
+	result->status = -1;
+	return retval;
 }
 
 
-int *
-delete_key_1_svc(int key,  struct svc_req *rqstp)
+bool_t
+modify_value_1_svc(value_args arg1, int *result,  struct svc_req *rqstp)
 {
-	static int  result;
+	bool_t retval = TRUE;
+
+	printf("Modificando valor\n");
+
+	pthread_mutex_lock(&mutex_tuplas);
+	pthread_mutex_lock(&mutex_keys);
+
+	for (int i = 0; i < numTuplas; i++)
+	{
+		if (keys[i] == arg1.key)
+		{
+			strcpy(tuplas[i].valor1, arg1.value1);
+			tuplas[i].N = arg1.N_value2;
+
+			if (tuplas[i].vector != NULL)
+			{
+				free(tuplas[i].vector);  // Libera la memoria previamente asignada si existe
+			}
+			
+			tuplas[i].vector = (double *)malloc(arg1.N_value2 * sizeof(double));
+			
+			for (int j = 0; j < arg1.N_value2; j++)
+			{
+				tuplas[i].vector[j] = arg1.V_value2.double_array_val[j];
+			}
+
+			pthread_mutex_unlock(&mutex_keys);
+			pthread_mutex_unlock(&mutex_tuplas);
+			escribirTuplas();
+			*result = 0;
+			return retval;
+		}
+	}
+
+	pthread_mutex_unlock(&mutex_keys);
+	pthread_mutex_unlock(&mutex_tuplas);
+	*result = -1;
+	return retval;
+}
+
+
+bool_t
+delete_key_1_svc(int key, int *result,  struct svc_req *rqstp)
+{
+	bool_t retval = TRUE;
 
 	printf("Borrando clave\n");
-    pthread_mutex_lock(&mutex_tuplas);
-    pthread_mutex_lock(&mutex_keys);
-    for (int i = 0; i < numTuplas; i++)
-    {
-        if (keys[i] == key)
-        {
-            for (int j = i; j < numTuplas - 1; j++)
-            {
-                tuplas[j] = tuplas[j + 1];
-                keys[j] = keys[j + 1];
-            }
-            numTuplas--;
-            pthread_mutex_unlock(&mutex_keys);
-            pthread_mutex_unlock(&mutex_tuplas);
-            escribirTuplas();
-            result = 0;
-            return &result;
-        }
-    }
-    pthread_mutex_unlock(&mutex_keys);
-    pthread_mutex_unlock(&mutex_tuplas);
-    result = -1;
-    return &result;
+	pthread_mutex_lock(&mutex_tuplas);
+	pthread_mutex_lock(&mutex_keys);
+	for (int i = 0; i < numTuplas; i++)
+	{
+		if (keys[i] == key)
+		{
+			for (int j = i; j < numTuplas - 1; j++)
+			{
+				tuplas[j] = tuplas[j + 1];
+				keys[j] = keys[j + 1];
+			}
+			numTuplas--;
+			pthread_mutex_unlock(&mutex_keys);
+			pthread_mutex_unlock(&mutex_tuplas);
+			escribirTuplas();
+			*result = 0;
+			return retval;
+		}
+	}
+	pthread_mutex_unlock(&mutex_keys);
+	pthread_mutex_unlock(&mutex_tuplas);
+	*result = -1;
+	return retval;
 }
 
-int *
-exist_1_svc(int key,  struct svc_req *rqstp)
+
+bool_t
+exist_1_svc(int key, int *result,  struct svc_req *rqstp)
 {
-	static int  result;
+	bool_t retval = TRUE;
 
 	printf("Comprobando existencia\n");
-    pthread_mutex_lock(&mutex_keys);
-    for (int i = 0; i < numTuplas; i++)
-    {
-        if (keys[i] == key)
-        {
-            pthread_mutex_unlock(&mutex_keys);
-            result = 1;
-            return &result;
-        }
-    }
-    pthread_mutex_unlock(&mutex_keys);
-    result = 0;
-    return &result;
+	pthread_mutex_lock(&mutex_keys);
+	for (int i = 0; i < numTuplas; i++)
+	{
+		if (keys[i] == key)
+		{
+			pthread_mutex_unlock(&mutex_keys);
+			*result = 1;
+			return retval;
+		}
+	}
+	pthread_mutex_unlock(&mutex_keys);
+	*result = 0;
+	return retval;
 }
 
+
+int
+clave_valor_1_freeresult (SVCXPRT *transp, xdrproc_t xdr_result, caddr_t result)
+{
+	xdr_free (xdr_result, result);
+
+	/*
+	 * Insert additional freeing code here, if needed
+	 */
+
+	return 1;
+}
