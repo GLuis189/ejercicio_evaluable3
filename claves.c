@@ -73,12 +73,20 @@ int get_value(int key, char *value1, int *N_value2, double *V_value2){
 
     get_value_1_key = key;
 
+    memset(&result_3, 0, sizeof(result_3));
+
     retval_3 = get_value_1(get_value_1_key, &result_3, clnt);
     if (retval_3 != RPC_SUCCESS) {
-        clnt_perror(clnt, "call failed");
+        clnt_perror (clnt, "call failed");
     }
 
     if (result_3.status == 0) {
+        // Comprueba si value1 y V_value2 son NULL antes de usarlos
+        if (result_3.value1 == NULL || result_3.V_value2.double_array_val == NULL) {
+            printf("Error: memoria no asignada\n");
+            return -1;
+        }
+
         strcpy(value1, result_3.value1);
         *N_value2 = result_3.N_value2;
         for (int i = 0; i < result_3.N_value2; i++) {
@@ -88,6 +96,7 @@ int get_value(int key, char *value1, int *N_value2, double *V_value2){
 
     return result_3.status;
 }
+
 
 int modify_value(int clave, char *valor1, int N_value2, double *V_value2){
     CLIENT *clnt;
